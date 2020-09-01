@@ -1,14 +1,21 @@
 import React from 'react';
+import { createStore } from "redux";
+import { Provider } from 'react-redux';
 import './styles.css';
-import ExchangeRate from '../ExchangeRate';
+import Wrapper from '../Wrapper';
+import rootReducer from "../../store/rootReducer";
+
+const store = createStore(rootReducer);
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <ExchangeRate />
-      </header>
-    </div>
+    <Provider store={store}>
+      <div className="App">
+        <header className="App-header">
+          <Wrapper/>
+        </header>
+      </div>
+    </Provider>
   );
 }
 

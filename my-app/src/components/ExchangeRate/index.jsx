@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import classNames from 'classnames';
 import useRecursiveTimeout from '../../hooks/useRecoursiveTimeout'
 import * as ExchangeRateService from './ExchangeRateService'
+import { isTabActiveSelector } from '../../selectors/appSelector';
 import './styles.css'
 
 //Time in milliseconds
@@ -10,6 +12,7 @@ const UPDATE_INTERVAL = 5000;
 const ExchangeRate = () => {
   const [exchangeRate, setExchangeRate] = useState(0);
   const [exchangeRateDiff, setExchangeRateDiff] = useState(0);
+  const isTabActive = useSelector(isTabActiveSelector);
 
   const updateExchangeRate = useCallback(async () => {
     const response = await ExchangeRateService.getExchangeRate();
@@ -20,6 +23,7 @@ const ExchangeRate = () => {
         setExchangeRateDiff(diff);
       }
       setExchangeRate(Number(data.price).toFixed(6));
+      console.warn("Ticked!");
     }
   }, [exchangeRate]);
 
@@ -33,7 +37,7 @@ const ExchangeRate = () => {
 
   useRecursiveTimeout(async () => {
     await updateExchangeRate();
-  }, UPDATE_INTERVAL);
+  }, isTabActive ? UPDATE_INTERVAL : null);
 
   const exchangeRateDiffSpan = (
     exchangeRateDiff !== 0 &&
