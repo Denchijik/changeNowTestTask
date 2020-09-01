@@ -1,41 +1,39 @@
-import React, { useEffect,useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import classNames from 'classnames';
+import useRecursiveTimeout from '../../hooks/useRecoursiveTimeout'
 import * as ExchangeRateService from './ExchangeRateService'
 import './styles.css'
 
 //Time in milliseconds
-const UPDATE_INTERVAL = 100000;
+const UPDATE_INTERVAL = 5000;
 
-const ExchangeRate= () => {
+const ExchangeRate = () => {
   const [exchangeRate, setExchangeRate] = useState(0);
   const [exchangeRateDiff, setExchangeRateDiff] = useState(0);
 
-  const updateExchangeRate = useCallback(() => {
-    ExchangeRateService.getExchangeRate()
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        console.warn(data);
-        if (data.price) {
-          if (exchangeRate !== 0) {
-            const diff = ((data.price - exchangeRate) / exchangeRate).toFixed(6);
-            setExchangeRateDiff(diff);
-          }
-          setExchangeRate(Number(data.price).toFixed(6));
-        }
-      });
+  const updateExchangeRate = useCallback(async () => {
+    const response = await ExchangeRateService.getExchangeRate();
+    const data = await response.json();
+    if (data.price) {
+      if (exchangeRate !== 0) {
+        const diff = ((data.price - exchangeRate) / exchangeRate).toFixed(6);
+        setExchangeRateDiff(diff);
+      }
+      setExchangeRate(Number(data.price).toFixed(6));
+    }
   }, [exchangeRate]);
 
   useEffect(() => {
-    updateExchangeRate();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    async function updateExchangeRateData(){
+      updateExchangeRate();
+    }
+    updateExchangeRateData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(updateExchangeRate, UPDATE_INTERVAL);
-    return () => clearInterval(interval);
-  }, [updateExchangeRate])
+  useRecursiveTimeout(async () => {
+    await updateExchangeRate();
+  }, UPDATE_INTERVAL);
 
   const exchangeRateDiffSpan = (
     exchangeRateDiff !== 0 &&
