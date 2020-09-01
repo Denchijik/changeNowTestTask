@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import classNames from 'classnames';
 import useRecursiveTimeout from '../../hooks/useRecoursiveTimeout'
 import * as ExchangeRateService from './ExchangeRateService'
 import { isTabActiveSelector } from '../../selectors/appSelector';
-import './styles.css'
+import ExchangeRateLabel from './ExchangeRateLabel/index'
 
 //Time in milliseconds
-const UPDATE_INTERVAL = 5000;
+const UPDATE_INTERVAL = 10000;
 
 const ExchangeRate = () => {
   const [exchangeRate, setExchangeRate] = useState(0);
@@ -19,11 +18,11 @@ const ExchangeRate = () => {
     const data = await response.json();
     if (data.price) {
       if (exchangeRate !== 0) {
-        const diff = ((data.price - exchangeRate) / exchangeRate).toFixed(6);
-        setExchangeRateDiff(diff);
+        const diff = ((data.price - exchangeRate) / exchangeRate);
+        const newDiff = diff !==0 ? diff.toFixed(6) : 0;
+        setExchangeRateDiff(newDiff);
       }
       setExchangeRate(Number(data.price).toFixed(6));
-      console.warn("Ticked!");
     }
   }, [exchangeRate]);
 
@@ -39,21 +38,10 @@ const ExchangeRate = () => {
     await updateExchangeRate();
   }, isTabActive ? UPDATE_INTERVAL : null);
 
-  const exchangeRateDiffSpan = (
-    exchangeRateDiff !== 0 &&
-    <span className={classNames(
-      {
-        'rate-increase': exchangeRateDiff > 0,
-        'rate-decrease': exchangeRateDiff < 0
-      })}>
-      {exchangeRateDiff}%
-      </span>
-  )
-
   return (
-    <p>
-      {exchangeRate} {exchangeRateDiffSpan}
-    </p >
+    <>
+      <ExchangeRateLabel exchangeRate={exchangeRate} exchangeRateDiff={exchangeRateDiff} />
+    </>
   )
 }
 
